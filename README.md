@@ -27,12 +27,10 @@ rm swiftly.pkg
 ~/.swiftly/bin/swiftly init --skip-install --quiet-shell-followup
 ```
 
-Open a new terminal, navigate to the root of the git clone of this repo, and run:
+In a new terminal, `cd` to the root of this git repo, then run:
 
 ```bash
-swiftly install 6.4.0
-swiftly run swift --version
-swiftly run swift package --version
+swiftly install
 ```
 
 ## Build and run
@@ -43,10 +41,17 @@ Quit any previously-running copy of the app, then run:
 
 ```bash
 bash scripts/build-app.sh
-open build/FuncToggle.app
 ```
 
-Optionally, you can copy the app to your Applications folder after building.
+The app is created at `build/FuncToggle.app` and can be run directly from there.
+
+If you prefer to install it to `/Applications`, run the following (or add `--user` to install to `~/Applications`):
+
+```bash
+bash scripts/install-app.sh
+```
+
+The install script quits your running copy of FuncToggle, removes any existing app at the selected destination, copies the built app there, and opens it. It will prompt for your password only if needed.
 
 ## Using the app
 
@@ -54,7 +59,7 @@ Settings open on first launch. The default global shortcut is `Command-Option-Ta
 
 The menu bar icon indicates the app's current state: F for standard F1-F12, a sun icon for media keys, or `fn: ?` when macOS cannot report the mode. Its menu provides options to toggle the mode, open settings, or quit the app.
 
-To install locally, copy `build/FuncToggle.app` into `~/Applications` (create that folder if necessary). Quit an installed copy before replacing it manually. You can add it under System Settings > General > Login Items if you want it to launch at login.
+To launch the app at login, add it under System Settings > General > Login Items if you want it to launch at login.
 
 ## How it works and limitations
 
