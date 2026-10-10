@@ -15,6 +15,7 @@ cp "$bin_path/FuncToggle" "$app_path/Contents/MacOS/FuncToggle"
 cp Resources/Info.plist "$app_path/Contents/Info.plist"
 
 # Swift Build's resource accessor finds dependency bundles in Contents/Resources.
+# Unlike the older SwiftPM build engine, it needs no generated-accessor patch or second build.
 # ditto preserves their directory structure, including localized resources.
 for bundle in "$bin_path"/*.bundle; do
     if [[ -d "$bundle" ]]; then

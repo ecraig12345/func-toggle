@@ -5,7 +5,7 @@
     <key>CFBundleExecutable</key>
     <string>FuncToggle</string>
     <key>CFBundleIdentifier</key>
-    <string>local.FnToggle</string>
+    <string>local.FuncToggle</string>
     <key>CFBundleName</key>
     <string>FuncToggle</string>
     <key>CFBundlePackageType</key>

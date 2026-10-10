@@ -13,7 +13,7 @@ extension KeyboardShortcuts.Name {
 
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWindowDelegate {
-    private let logger = Logger(subsystem: "local.FnToggle", category: "Keyboard")
+    private let logger = Logger(subsystem: "local.FuncToggle", category: "Keyboard")
     private var statusItem: NSStatusItem?
     private var modeItem: NSMenuItem?
     private var settingsWindow: NSWindow?
@@ -26,13 +26,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
         menu.addItem(modeItem)
         self.modeItem = modeItem
         menu.addItem(.separator())
-        addItem("Toggle function keys", action: #selector(toggleMode), to: menu)
+        addItem("Toggle mode", action: #selector(toggleMode), to: menu)
         addItem("Settings...", action: #selector(showSettings), to: menu)
         menu.addItem(.separator())
         addItem("Quit FuncToggle", action: #selector(quit), to: menu)
 
         let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         item.menu = menu
+        // Preserve symbol aspect ratios; stretching can make the sun look oval.
         item.button?.imageScaling = .scaleProportionallyDown
         statusItem = item
         refreshMode()
@@ -48,6 +49,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
     }
 
     func menuWillOpen(_ menu: NSMenu) {
+        // Reflect mode changes made outside the app when the user opens the menu.
         refreshMode()
     }
 
@@ -62,19 +64,23 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
         modeItem?.title = "Current mode: \(mode.title)"
         let description = "FuncToggle: \(mode.title)"
         let button = statusItem?.button
+        // Configure the glyph, not square image bounds. Menu bar height still limits its visible size.
         let pointSize: CGFloat = mode == .standard ? 18 : 16
         if let image = NSImage(
             systemSymbolName: mode.symbolName,
             accessibilityDescription: description
         )?.withSymbolConfiguration(.init(pointSize: pointSize, weight: .regular)) {
+            // Template rendering adapts the icon to the menu bar's light or dark appearance.
             image.isTemplate = true
             button?.image = image
             button?.title = ""
         } else {
+            // Keep the current mode visible even if macOS cannot load the symbol.
             logger.error("Status symbol unavailable: \(mode.symbolName, privacy: .public)")
             button?.image = nil
             button?.title = mode.indicator
         }
+        // Describe the mode without relying on the user recognizing the symbol.
         button?.toolTip = description
         button?.setAccessibilityLabel(description)
     }
@@ -137,6 +143,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
             )
             explanation.textColor = .secondaryLabelColor
             let done = NSButton(title: "Done", target: self, action: #selector(closeSettings))
+            // The recorder pauses global shortcuts while editing; require an explicit click to start.
             window.initialFirstResponder = done
 
             let stack = NSStackView(views: [title, recorder, explanation, done])
@@ -163,10 +170,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
     }
 
     func windowDidResignKey(_ notification: Notification) {
+        // Ending recorder editing resumes global shortcuts when switching to another app.
         settingsWindow?.makeFirstResponder(nil)
     }
 
     func windowWillClose(_ notification: Notification) {
+        // Closing Settings (including via Done) must also end recording and resume shortcuts.
         settingsWindow?.makeFirstResponder(nil)
     }
 
