@@ -5,12 +5,38 @@ A small native macOS menu-bar app (`func-toggle`) that switches between standard
 ## Requirements
 
 - macOS 15 or later, with a keyboard that supports Apple's function-key mode setting.
-- Swift 6.2 or later and the macOS SDK (Apple Command Line Tools).
-- Internet access for the initial fetch of the KeyboardShortcuts dependency.
+- Swift 6.4.0, managed by [Swiftly](https://www.swift.org/install/macos/) and pinned in `.swift-version`.
+- Apple Command Line Tools for the macOS SDK, signing, and bundling utilities.
+- Internet access for installing the toolchain and the initial fetch of the KeyboardShortcuts dependency.
 
-Install the tools with `xcode-select --install`, then check `swift --version`.
+## Set up the toolchain
+
+Install Apple's tools if needed:
+
+```bash
+xcode-select --install
+```
+
+Install Swiftly using the official installer (skip this step if Swiftly is already installed):
+
+```bash
+curl --fail --location --output swiftly.pkg https://download.swift.org/swiftly/darwin/swiftly.pkg
+installer -pkg swiftly.pkg -target CurrentUserHomeDirectory
+rm swiftly.pkg
+~/.swiftly/bin/swiftly init --skip-install --quiet-shell-followup
+```
+
+In a new terminal in your project folder:
+
+```bash
+swiftly install 6.4.0
+swiftly run swift --version
+swiftly run swift package --version
+```
 
 ## Build and run
+
+The build script activates Swiftly and uses `swiftly run` to honor the project version.
 
 ```bash
 bash scripts/build-app.sh
@@ -43,14 +69,14 @@ The app is not sandboxed. It does not use GUI scripting, an event-tap keyboard m
 
 ## Validation
 
+The test script activates Swiftly and uses `swiftly run` to honor the project version.
+
 ```bash
 bash scripts/test.sh
 build/FuncToggle.app/Contents/MacOS/FuncToggle --check
 ```
 
 `--check` prints the current mode and exits without changing it or opening the UI. Tests cover mode values, reversible toggling, and error descriptions; they never alter your keyboard settings.
-
-The test script explicitly locates the Swift Testing framework supplied by the developer tools, which Swift Package Manager does not automatically find in some Command Line Tools installations.
 
 For an end-to-end test, choose a shortcut, focus another application, and press the shortcut. Confirm the indicator changes and a physical function key changes behavior immediately, then press the shortcut again to restore the previous mode. Quit and relaunch to verify the shortcut was saved.
 
