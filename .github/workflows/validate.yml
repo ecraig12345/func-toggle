@@ -1,0 +1,43 @@
+name: Validate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions: {}
+
+jobs:
+  validate:
+    runs-on: macos-15
+    timeout-minutes: 30
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Install Swiftly and the pinned toolchain
+        # Follow Swift.org's macOS install instructions
+        run: |
+          set -euox pipefail
+          installer_path="$RUNNER_TEMP/swiftly.pkg"
+          curl --fail --location --output "$installer_path" https://download.swift.org/swiftly/darwin/swiftly.pkg
+          installer -pkg "$installer_path" -target CurrentUserHomeDirectory
+          rm "$installer_path"
+          "$HOME/.swiftly/bin/swiftly" init --skip-install --no-modify-profile --quiet-shell-followup --assume-yes
+          source "$HOME/.swiftly/env.sh"
+          swiftly install --assume-yes
+          swiftly run swift --version
+          swiftly run swift package --version
+
+      - name: Check shell syntax
+        run: bash -n scripts/build-app.sh scripts/test.sh
+
+      - name: Run tests
+        run: bash scripts/test.sh
+
+      - name: Build app and verify local signature
+        run: bash scripts/build-app.sh

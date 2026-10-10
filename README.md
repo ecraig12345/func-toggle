@@ -9,7 +9,6 @@ Due to Apple's developer requirements for signing apps, currently you'll need to
 - macOS 15 or later, with a keyboard that supports Apple's function-key mode setting.
 - Swift 6.4.0, managed by [Swiftly](https://www.swift.org/install/macos/) and pinned in `.swift-version`.
 - Apple Command Line Tools for the macOS SDK, signing, and bundling utilities.
-- Internet access for installing the toolchain and the initial fetch of the KeyboardShortcuts dependency.
 
 ## Set up the toolchain
 
@@ -75,6 +74,8 @@ build/FuncToggle.app/Contents/MacOS/FuncToggle --check
 ```
 
 `--check` prints the current mode and exits without changing it or opening the UI. Tests cover mode values, reversible toggling, and error descriptions; they never alter your keyboard settings.
+
+The [GitHub Actions workflow](.github/workflows/validate.yml) runs on pushes, pull requests, and manual dispatch using a macOS 15 runner. It installs the pinned toolchain through Swiftly, checks shell syntax, runs tests, and builds the app with ad-hoc signature verification. It does not upload artifacts or require signing credentials. Hardware mode detection (`--check`), global shortcut interaction, and physical key behavior are not tested in CI.
 
 For an end-to-end test, choose a shortcut, focus another application, and press the shortcut. Confirm the indicator changes and a physical function key changes behavior immediately, then press the shortcut again to restore the previous mode. Quit and relaunch to verify the shortcut was saved.
 
