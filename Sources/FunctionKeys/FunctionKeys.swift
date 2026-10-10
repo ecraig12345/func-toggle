@@ -23,6 +23,13 @@ public enum FunctionKeyMode: Int, CaseIterable, Sendable {
         case .standard: "fn: F"
         }
     }
+
+    public var symbolName: String {
+        switch self {
+        case .media: "sun.max"
+        case .standard: "f.square.fill"
+        }
+    }
 }
 
 public enum FunctionKeyError: LocalizedError {

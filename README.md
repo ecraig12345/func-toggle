@@ -25,7 +25,9 @@ Settings open on first launch. The default global shortcut is Command-Option-Tab
 
 The recorder only captures keys after you click it. Global shortcut handling pauses during recording and resumes when you finish, switch away from Settings, or close the window. Use Done to dismiss Settings without changing your shortcut.
 
-The menu bar shows `fn: F` for standard F1-F12, `fn: Media` for media keys, or `fn: ?` when macOS cannot report the mode. Its menu provides Toggle function keys, Settings, and Quit. The mode is read again when the menu opens, so external changes are reflected there.
+The menu bar shows the `f.square.fill` SF Symbol for standard F1-F12, the `sun.max` SF Symbol for media keys, or `fn: ?` when macOS cannot report the mode. The F symbol uses an 18-point configuration and the sun uses 16 points. Icons adapt to the menu bar appearance, and the tooltip and accessibility label describe the current mode. If a symbol is unavailable, the app logs the issue and uses a text indicator. Its menu provides Toggle function keys, Settings, and Quit. The mode is read again when the menu opens, so external changes are reflected there.
+
+Sizes use native SF Symbol point-size configurations, not resized square image bounds. The status button scales images proportionally to preserve their aspect ratios. macOS still fits the images to the available menu bar height, so the configured point size is not a guarantee of the visible icon height.
 
 Quit any running copy before rebuilding. To install locally, copy `build/FuncToggle.app` into `~/Applications` (create that folder if necessary). You can add it manually under System Settings > General > Login Items if you want it to launch at login.
 

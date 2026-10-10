@@ -1,3 +1,4 @@
+import AppKit
 import FunctionKeys
 import Testing
 
@@ -27,4 +28,12 @@ func togglingChangesModeAndIsReversible(mode: FunctionKeyMode) {
         #expect(!(error.errorDescription ?? "").isEmpty)
     }
     #expect(FunctionKeyError.unsupportedMode(42).errorDescription?.contains("42") == true)
+}
+
+@Test @MainActor func statusSymbolsMatchModesAndAreAvailable() {
+    #expect(FunctionKeyMode.standard.symbolName == "f.square.fill")
+    #expect(FunctionKeyMode.media.symbolName == "sun.max")
+    for mode in FunctionKeyMode.allCases {
+        #expect(NSImage(systemSymbolName: mode.symbolName, accessibilityDescription: mode.title) != nil)
+    }
 }

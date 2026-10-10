@@ -33,6 +33,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
 
         let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         item.menu = menu
+        item.button?.imageScaling = .scaleProportionallyDown
         statusItem = item
         refreshMode()
 
@@ -59,8 +60,23 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
     private func updateMode(_ mode: FunctionKeyMode) {
         lastError = nil
         modeItem?.title = "Current mode: \(mode.title)"
-        statusItem?.button?.title = mode.indicator
-        statusItem?.button?.toolTip = "FuncToggle: \(mode.title)"
+        let description = "FuncToggle: \(mode.title)"
+        let button = statusItem?.button
+        let pointSize: CGFloat = mode == .standard ? 18 : 16
+        if let image = NSImage(
+            systemSymbolName: mode.symbolName,
+            accessibilityDescription: description
+        )?.withSymbolConfiguration(.init(pointSize: pointSize, weight: .regular)) {
+            image.isTemplate = true
+            button?.image = image
+            button?.title = ""
+        } else {
+            logger.error("Status symbol unavailable: \(mode.symbolName, privacy: .public)")
+            button?.image = nil
+            button?.title = mode.indicator
+        }
+        button?.toolTip = description
+        button?.setAccessibilityLabel(description)
     }
 
     private func refreshMode() {
@@ -75,8 +91,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
         lastError = error.localizedDescription
         logger.error("\(error.localizedDescription, privacy: .public)")
         modeItem?.title = "Function-key mode unavailable"
+        statusItem?.button?.image = nil
         statusItem?.button?.title = "fn: ?"
         statusItem?.button?.toolTip = error.localizedDescription
+        statusItem?.button?.setAccessibilityLabel("FuncToggle: \(error.localizedDescription)")
     }
 
     @objc private func toggleMode() {
