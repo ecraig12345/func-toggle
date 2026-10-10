@@ -2,6 +2,15 @@ import AppKit
 import FunctionKeys
 import KeyboardShortcuts
 import OSLog
+import ServiceManagement
+
+@MainActor
+final class SettingsWindow: NSWindow {
+    // Allow Escape to close the settings window.
+    override func cancelOperation(_ sender: Any?) {
+        performClose(sender)
+    }
+}
 
 @MainActor
 extension KeyboardShortcuts.Name {
@@ -17,6 +26,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
     private var statusItem: NSStatusItem?
     private var modeItem: NSMenuItem?
     private var settingsWindow: NSWindow?
+    private var openAtLoginButton: NSButton?
     private var lastError: String?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -42,7 +52,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
             self?.toggleMode()
         }
 
-        if !UserDefaults.standard.bool(forKey: "hasShownSettings") {
+        // Show settings on CLI option or first launch.
+        if CommandLine.arguments.contains("--show-settings")
+            || !UserDefaults.standard.bool(forKey: "hasShownSettings") {
             showSettings()
             UserDefaults.standard.set(true, forKey: "hasShownSettings")
         }
@@ -124,8 +136,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
 
     @objc private func showSettings() {
         if settingsWindow == nil {
-            let window = NSWindow(
-                contentRect: NSRect(x: 0, y: 0, width: 440, height: 260),
+            let window = SettingsWindow(
+                contentRect: NSRect(x: 0, y: 0, width: 440, height: 1),
                 styleMask: [.titled, .closable],
                 backing: .buffered,
                 defer: false
@@ -133,20 +145,25 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
             window.title = "FuncToggle settings"
             window.isReleasedWhenClosed = false
             window.delegate = self
-            window.center()
 
-            let title = NSTextField(labelWithString: "Global shortcut")
-            title.font = .boldSystemFont(ofSize: 14)
+            let title = NSTextField(labelWithString: "Global shortcut:")
             let recorder = KeyboardShortcuts.RecorderCocoa(for: .toggleFunctionKeys)
+            let shortcutRow = NSStackView(views: [title, recorder])
+            shortcutRow.orientation = .horizontal
+            shortcutRow.alignment = .centerY
+            shortcutRow.spacing = 12
             let explanation = NSTextField(wrappingLabelWithString:
                 "Click the recorder and press a shortcut. It works while other apps are active. Clear it with the recorder's clear button.\n\nSwitches between standard F1-F12 and media/brightness keys. Hold Fn to use the opposite behavior."
             )
             explanation.textColor = .secondaryLabelColor
-            let done = NSButton(title: "Done", target: self, action: #selector(closeSettings))
-            // The recorder pauses global shortcuts while editing; require an explicit click to start.
-            window.initialFirstResponder = done
+            let openAtLogin = NSButton(
+                checkboxWithTitle: "Open at login",
+                target: self,
+                action: #selector(toggleOpenAtLogin)
+            )
+            openAtLoginButton = openAtLogin
 
-            let stack = NSStackView(views: [title, recorder, explanation, done])
+            let stack = NSStackView(views: [shortcutRow, explanation, openAtLogin])
             stack.orientation = .vertical
             stack.alignment = .leading
             stack.spacing = 16
@@ -157,16 +174,64 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
                     stack.leadingAnchor.constraint(equalTo: content.leadingAnchor, constant: 24),
                     stack.trailingAnchor.constraint(equalTo: content.trailingAnchor, constant: -24),
                     stack.topAnchor.constraint(equalTo: content.topAnchor, constant: 24),
-                    stack.bottomAnchor.constraint(lessThanOrEqualTo: content.bottomAnchor, constant: -24)
+                    explanation.widthAnchor.constraint(equalTo: stack.widthAnchor)
                 ])
+                content.layoutSubtreeIfNeeded()
+                window.setContentSize(NSSize(
+                    width: content.bounds.width,
+                    height: stack.fittingSize.height + 48
+                ))
+                stack.bottomAnchor.constraint(equalTo: content.bottomAnchor, constant: -24).isActive = true
             }
+            window.center()
             settingsWindow = window
         }
+        refreshOpenAtLogin()
         NSApplication.shared.activate(ignoringOtherApps: true)
         settingsWindow?.makeKeyAndOrderFront(nil)
+        settingsWindow?.makeFirstResponder(nil)
         if let lastError {
             showError(lastError)
         }
+    }
+
+    private func refreshOpenAtLogin() {
+        let status = SMAppService.mainApp.status
+        openAtLoginButton?.state = status == .enabled || status == .requiresApproval ? .on : .off
+    }
+
+    @objc private func toggleOpenAtLogin() {
+        do {
+            if openAtLoginButton?.state == .on {
+                try SMAppService.mainApp.register()
+            } else {
+                try SMAppService.mainApp.unregister()
+            }
+        } catch {
+            refreshOpenAtLogin()
+            logger.error("Login item: \(error.localizedDescription, privacy: .public)")
+            let alert = NSAlert()
+            alert.alertStyle = .warning
+            alert.messageText = "Could not change open at login"
+            alert.informativeText = error.localizedDescription
+            alert.runModal()
+            return
+        }
+        refreshOpenAtLogin()
+        if SMAppService.mainApp.status == .requiresApproval {
+            let alert = NSAlert()
+            alert.messageText = "Login item approval required"
+            alert.informativeText = "Allow FuncToggle in System Settings > General > Login Items & Extensions to open it at login."
+            alert.addButton(withTitle: "Open System Settings")
+            alert.addButton(withTitle: "Not now")
+            if alert.runModal() == .alertFirstButtonReturn {
+                SMAppService.openSystemSettingsLoginItems()
+            }
+        }
+    }
+
+    func windowDidBecomeKey(_ notification: Notification) {
+        refreshOpenAtLogin()
     }
 
     func windowDidResignKey(_ notification: Notification) {
@@ -175,12 +240,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
     }
 
     func windowWillClose(_ notification: Notification) {
-        // Closing Settings (including via Done) must also end recording and resume shortcuts.
+        // Closing Settings must also end recording and resume shortcuts.
         settingsWindow?.makeFirstResponder(nil)
-    }
-
-    @objc private func closeSettings() {
-        settingsWindow?.close()
     }
 
     @objc private func quit() {

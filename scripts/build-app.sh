@@ -40,4 +40,6 @@ plutil -lint "$app_path/Contents/Info.plist"
 # Sign only after all bundle contents are in place, then verify the signature.
 codesign --force --sign - "$app_path"
 codesign --verify --strict --verbose=2 "$app_path"
-printf '\nBuilt %s\nRun: open "%s"\n' "$app_path" "$app_path"
+echo "Built $app_path"
+echo "To run: open \"$app_path\""
+echo "To install: ./scripts/install-app.sh"

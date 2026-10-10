@@ -40,7 +40,7 @@ The build script activates Swiftly and uses `swiftly run` to honor the project v
 Quit any previously-running copy of the app, then run:
 
 ```bash
-bash scripts/build-app.sh
+./scripts/build-app.sh
 ```
 
 The app is created at `build/FuncToggle.app` and can be run directly from there.
@@ -48,18 +48,18 @@ The app is created at `build/FuncToggle.app` and can be run directly from there.
 If you prefer to install it to `/Applications`, run the following (or add `--user` to install to `~/Applications`):
 
 ```bash
-bash scripts/install-app.sh
+./scripts/install-app.sh
 ```
 
-The install script quits your running copy of FuncToggle, removes any existing app at the selected destination, copies the built app there, and opens it. It will prompt for your password only if needed.
+The install script quits your running copy of FuncToggle, removes any existing app at the selected destination, copies the built app there, and opens it with settings visible using `--show-settings`. It will prompt for your password only if needed.
 
 ## Using the app
 
-Settings open on first launch. The default global shortcut is `Command-Option-Tab`. Click the shortcut recorder to change it (the recorder only captures keys after you click it), or use its clear button to disable it. The shortcut is saved automatically and works while other apps are active.
+Settings open on first launch. The default global shortcut is `Command-Option-Tab`. Click the shortcut recorder to change it (the recorder only captures keys after you click it), or use the clear button to disable it. The shortcut is saved automatically and works while other apps are active.
 
 The menu bar icon indicates the app's current state: F for standard F1-F12, a sun icon for media keys, or `fn: ?` when macOS cannot report the mode. Its menu provides options to toggle the mode, open settings, or quit the app.
 
-To launch the app at login, add it under System Settings > General > Login Items if you want it to launch at login.
+To launch the app at login, enable **Open at login** in FuncToggle settings (install the app at its intended location before enabling this option). If macOS requires approval, the app offers to open System Settings > General > Login Items & Extensions.
 
 ## How it works and limitations
 
@@ -74,7 +74,7 @@ The app is not sandboxed. It does not use GUI scripting, an event-tap keyboard m
 The test script activates Swiftly and uses `swiftly run` to honor the project version.
 
 ```bash
-bash scripts/test.sh
+./scripts/test.sh
 build/FuncToggle.app/Contents/MacOS/FuncToggle --check
 ```
 
