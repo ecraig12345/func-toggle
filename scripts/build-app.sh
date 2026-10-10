@@ -14,6 +14,18 @@ mkdir -p "$app_path/Contents/MacOS" "$app_path/Contents/Resources"
 cp "$bin_path/FuncToggle" "$app_path/Contents/MacOS/FuncToggle"
 cp Resources/Info.plist "$app_path/Contents/Info.plist"
 
+icon_source="$PWD/Resources/AppIcon/AppIcon.png"
+iconset_path="$PWD/build/AppIcon.iconset"
+mkdir -p "$iconset_path"
+for size in 16 32 128 256 512; do
+    sips -z "$size" "$size" "$icon_source" \
+        --out "$iconset_path/icon_${size}x${size}.png" >/dev/null
+    double_size=$((size * 2))
+    sips -z "$double_size" "$double_size" "$icon_source" \
+        --out "$iconset_path/icon_${size}x${size}@2x.png" >/dev/null
+done
+iconutil -c icns "$iconset_path" -o "$app_path/Contents/Resources/AppIcon.icns"
+
 # Swift Build's resource accessor finds dependency bundles in Contents/Resources.
 # Unlike the older SwiftPM build engine, it needs no generated-accessor patch or second build.
 # ditto preserves their directory structure, including localized resources.

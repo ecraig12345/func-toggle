@@ -8,6 +8,8 @@
     <string>local.FuncToggle</string>
     <key>CFBundleName</key>
     <string>FuncToggle</string>
+    <key>CFBundleIconFile</key>
+    <string>AppIcon</string>
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleShortVersionString</key>
