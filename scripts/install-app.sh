@@ -46,5 +46,8 @@ if ! ditto "$app_path" "$installed_path"; then
     sudo ditto "$app_path" "$installed_path"
 fi
 
+# clear quarantine attribute of locally-built app
+xattr -cr "$installed_path"
+
 printf 'Installed and started %s\n' "$installed_path"
 open "$installed_path" --args --show-settings

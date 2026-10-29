@@ -53,6 +53,8 @@ If you prefer to install it to `/Applications`, run the following (or add `--use
 
 The install script quits your running copy of FuncToggle, removes any existing app at the selected destination, copies the built app there, and opens it with settings visible using `--show-settings`. It will prompt for your password only if needed.
 
+If the app won't open, run `xattr -cr /path/to/FuncToggle.app` and try again.
+
 ## Using the app
 
 Settings open on first launch. The default global shortcut is `Command-Option-Tab`. Click the shortcut recorder to change it (the recorder only captures keys after you click it), or use the clear button to disable it. The shortcut is saved automatically and works while other apps are active.
